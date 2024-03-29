@@ -9,6 +9,18 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class Main {
+    private static void del(File folder) {
+            if (folder.isDirectory()) {
+                File[] files = folder.listFiles();
+                if (files != null) {
+                    for (File file : files) {
+                        del(file); // 递归删除子文件或子文件夹
+                    }
+                }
+            }
+            // 删除空文件夹
+            folder.delete();
+        }
     public static void main(String[] arg) throws Exception {
         Scanner scanner = new Scanner(System.in);
         boolean b =false;
@@ -23,14 +35,16 @@ public class Main {
         if(!file.exists()){
             throw new FileNotFoundException();
         }
+        File b5 = new File("output");
+        del(b5);
         System.out.println("Converting...");
         File file1 = new File("output/full/assets/minecraft/sounds/mob/horse/");
-        if(!file1.exists())file1.mkdirs();
+        file1.mkdirs();
         Runtime.getRuntime().exec("ffmpeg.exe -i "+ args[0] +" -ac 1 -y -map 0:a -map_metadata -1 -acodec libvorbis ./output/full/assets/minecraft/sounds/mob/horse/death.ogg");
         Runtime.getRuntime().exec("ffmpeg.exe -i "+ args[0] + " ./output/full/pack.png");
         File file2 = new File("output/full","pack.mcmeta");
         System.out.println(file2.getAbsolutePath());
-        if(!file2.exists())file2.createNewFile();
+        file2.createNewFile();
         FileOutputStream stream = new FileOutputStream(file2);
         String json = "{\n" +
                 "  \"pack\": {\n" +
@@ -42,7 +56,7 @@ public class Main {
         System.out.println("玩家材质包已制作完成 请打包");
         System.out.println("现在制作谱师材质包~");
         File files = new File("output/charter");
-        if(!files.exists())files.mkdirs();
+        files.mkdirs();
         Process process = Runtime.getRuntime().exec("ffmpeg.exe -i "+args[0]+" -ac 1 -y -map 0:a -map_metadata -1 -acodec libvorbis ./output/charter/temp.ogg");
         process.waitFor();
         System.out.println("分片中.. ");
@@ -51,29 +65,27 @@ public class Main {
         System.out.println("OK,处理中.. ");
         int i = 0;
         Thread.sleep(1000);
-        Queue<Sound> avail_entities = Arrays.stream(Sound.values()).filter(sound -> sound.toString().endsWith("_DEATH") && sound.toString().startsWith("ENTITY_")).collect(Collectors.toCollection(LinkedList::new));
         boolean flag;
-        while (!avail_entities.isEmpty()){
+        File rm = new File("output/charter/temp.ogg");
+        rm.delete();
+        while (true){
             File fileb = new File("output/charter","temp"+(i < 10 ? "00"+i : (i < 100 ? "0"+i : i))+".ogg");
-            Sound sb = avail_entities.poll();
-            assert sb != null;
-            String val = sb.toString().replace("_DEATH","").replace("ENTITY_","").toLowerCase();
             i++;
             flag = fileb.exists();
             if(!flag)break;
-            File filec = new File("output/charter/assets/minecraft/sounds/mob/"+val);
-            System.out.println(fileb.getPath() + " -> " +filec.getPath() + "\\death.ogg");
-            if(!filec.exists())filec.mkdirs();
-            File filed = new File(filec,"death.ogg");
-            Files.copy(fileb.toPath(), new FileOutputStream(filed));
+            File filec = new File("output/charter/part-"+i+"/assets/minecraft/sounds/mob/irongolem/death.ogg");
+            System.out.println(fileb.getPath() + " -> " +filec.getPath());
+            filec.getParentFile().mkdirs();
+            filec.createNewFile();
+            Files.copy(fileb.toPath(), new FileOutputStream(filec));
             fileb.delete();
+            File file2b = new File("output/charter/part-"+i,"pack.mcmeta");
+            file2b.createNewFile();
+            FileOutputStream streamb = new FileOutputStream(file2b);
+            streamb.write(json.getBytes(StandardCharsets.UTF_8));
+            new ZipCompress("output/charter/part-"+i+".zip","output/charter/part-"+i).zip();
         }
-        File rm = new File("output/charter/temp.ogg");
-        rm.delete();
-        File file2b = new File("output/charter","pack.mcmeta");
-        file2b.createNewFile();
-        FileOutputStream streamb = new FileOutputStream(file2b);
-        streamb.write(json.getBytes(StandardCharsets.UTF_8));
+
          System.out.println("OK. Done");
     }
 }
