@@ -53,6 +53,8 @@ public class Main {
                 "  }\n" +
                 "}";
         stream.write(json.getBytes(StandardCharsets.UTF_8));
+        stream.close();
+        new ZipCompress("output/"+args[0]+".zip","output/full");
         System.out.println("玩家材质包已制作完成 请打包");
         System.out.println("现在制作谱师材质包~");
         File files = new File("output/charter");
@@ -83,6 +85,7 @@ public class Main {
             file2b.createNewFile();
             FileOutputStream streamb = new FileOutputStream(file2b);
             streamb.write(json.getBytes(StandardCharsets.UTF_8));
+            streamb.close();
             new ZipCompress("output/charter/part-"+i+".zip","output/charter/part-"+i).zip();
         }
 
