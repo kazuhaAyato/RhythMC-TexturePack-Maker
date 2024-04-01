@@ -35,7 +35,7 @@ jobs:
         # Artifact name
         name: rhymc-build.jar # optional, default is artifact
         # A file, directory or wildcard pattern that describes what to upload
-        path: /target/rhymc-editor-*.jar
+        path: target/*.jar
     - name: Set Release version env variable
       run: |
         echo "RELEASE_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
@@ -48,4 +48,4 @@ jobs:
         prerelease: false
         title: "Release ${{ env.RELEASE_VERSION }}"
         files: |
-          /target/rhymc-editor-*.jar
+          target/*.jar
