@@ -6,7 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
+
 
 public class Main {
     private static void del(File folder) {
@@ -63,7 +63,32 @@ public class Main {
         process.waitFor();
         System.out.println("分片中.. ");
         Process process2 = Runtime.getRuntime().exec("ffmpeg.exe -i ./output/charter/temp.ogg -f segment -segment_time 15 -c copy ./output/charter/temp%3d.ogg");
-        process2.waitFor(10, TimeUnit.SECONDS);
+        // 创建新的线程来读取输出流
+        new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process2.getInputStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.out.println(line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+        // 创建新的线程来读取错误流
+        new Thread(() -> {
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process2.getErrorStream()))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    System.err.println(line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }).start();
+
+        process2.waitFor();
+
         System.out.println("OK,处理中.. ");
         int i = 0;
         Thread.sleep(1000);
@@ -88,7 +113,6 @@ public class Main {
             streamb.close();
             new ZipCompress("output/charter/part-"+i+".zip","output/charter/part-"+i).zip();
         }
-
          System.out.println("OK. Done");
     }
 }

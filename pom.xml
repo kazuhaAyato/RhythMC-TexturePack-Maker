@@ -54,5 +54,21 @@
         </repository>
     </repositories>
     <dependencies>
+<!--        <dependency>-->
+<!--    <groupId>org.eclipse.JGit</groupId>-->
+<!--    <artifactId>org.eclipse.JGit</artifactId>-->
+<!--    <version>6.4.0.202210260700-m2</version>-->
+<!--</dependency>-->
+
+<!--<dependency>-->
+<!--    <groupId>org.eclipse.JGit</groupId>-->
+<!--    <artifactId>org.eclipse.JGit</artifactId>-->
+<!--    <version>5.13.1.202206130422-r</version>-->
+<!--</dependency>-->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.21</version> <!-- 请根据你的需要选择合适的版本 -->
+        </dependency>
     </dependencies>
 </project>

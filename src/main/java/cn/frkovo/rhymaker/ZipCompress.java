@@ -1,15 +1,16 @@
 package cn.frkovo.rhymaker;
 
+import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
+import org.apache.commons.compress.archivers.zip.ZipArchiveOutputStream;
+import org.apache.commons.compress.utils.IOUtils;
+
+
 import java.io.*;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.nio.charset.StandardCharsets;
 
 public class ZipCompress {
-    /*
-        Src From : https://blog.csdn.net/gb4215287/article/details/121917536
-     */
-    private final String zipFileName;      // 目的地Zip文件
-    private final String sourceFileName;   //源文件（带压缩的文件或文件夹）
+    private final String zipFileName;
+    private final String sourceFileName;
 
     public ZipCompress(String zipFileName, String sourceFileName) {
         this.zipFileName = zipFileName;
@@ -17,51 +18,47 @@ public class ZipCompress {
     }
 
     public void zip() throws Exception {
-        //File zipFile = new File(zipFileName);
-        System.out.println("压缩中...");
-
-        //创建zip输出流
-        ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipFileName));
-
-        //创建缓冲输出流
-        BufferedOutputStream bos = new BufferedOutputStream(out);
+        // 创建zip输出流
+        ZipArchiveOutputStream out = new ZipArchiveOutputStream(new FileOutputStream(zipFileName));
 
         File sourceFile = new File(sourceFileName);
 
-        //调用函数
-        compress(out, bos, sourceFile, "");
+        compress(out, sourceFile, "");
 
-        bos.close();
         out.close();
-        System.out.println("压缩完成");
-
     }
 
-    public void compress(ZipOutputStream out, BufferedOutputStream bos, File sourceFile, String base) throws Exception {
-        //如果路径为目录（文件夹）
+    public void compress(ZipArchiveOutputStream out, File sourceFile, String base) throws Exception {
         if (sourceFile.isDirectory()) {
-            //取出文件夹中的文件（或子文件夹）
             File[] flist = sourceFile.listFiles();
-                for (int i = 0; i < flist.length; i++) {
-                    compress(out, bos, flist[i], base + "/" + flist[i].getName());
+
+            for (int i = 0; i < flist.length; i++) {
+                compress(out, flist[i], base + "/" + flist[i].getName());
+            }
+        } else {
+            out.putArchiveEntry(new ZipArchiveEntry(base));
+
+            // 判断文件是否为文本文件
+            if (sourceFile.getName().endsWith(".mcmeta")) {
+                // 使用字符流处理文本文件
+                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(sourceFile), StandardCharsets.UTF_8));
+                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
+
+                int tag;
+                while ((tag = reader.read()) != -1) {
+                    writer.write(tag);
                 }
 
-        } else//如果不是目录（文件夹），即为文件，则先写入目录进入点，之后将文件写入zip文件中
-        {
-            out.putNextEntry(new ZipEntry(base));
-            FileInputStream fos = new FileInputStream(sourceFile);
-            BufferedInputStream bis = new BufferedInputStream(fos);
-
-            int tag;
-            System.out.println(base);
-            //将源文件写入到zip文件中
-            while ((tag = bis.read()) != -1) {
-                bos.write(tag);
+                writer.flush();
+                reader.close();
+            } else {
+                // 使用字节流处理非文本文件
+                FileInputStream fis = new FileInputStream(sourceFile);
+                IOUtils.copy(fis, out);
+                fis.close();
             }
-            bis.close();
-            fos.close();
 
+            out.closeArchiveEntry();
         }
     }
 }
-
