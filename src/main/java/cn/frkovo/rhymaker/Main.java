@@ -26,11 +26,11 @@ public class Main {
         boolean b =false;
         String[] args = new String[3];
         System.out.println("输入 原始文件名");
-        args[0] = scanner.next();
+        args[0] = scanner.nextLine();
         System.out.println("输入 歌曲名");
-        args[1] = scanner.next();
+        args[1] = scanner.nextLine();
         System.out.println("输入 曲师名");
-        args[2] = scanner.next();
+        args[2] = scanner.nextLine();
         File file = new File(args[0]);
         if(!file.exists()){
             throw new FileNotFoundException();

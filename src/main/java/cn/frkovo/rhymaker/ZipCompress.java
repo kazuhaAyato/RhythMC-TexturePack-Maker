@@ -29,36 +29,25 @@ public class ZipCompress {
     }
 
     public void compress(ZipArchiveOutputStream out, File sourceFile, String base) throws Exception {
-        if (sourceFile.isDirectory()) {
-            File[] flist = sourceFile.listFiles();
+        String entryName = sourceFile.getPath().replace("\\", "/").substring(sourceFileName.length());
+        if (entryName.startsWith("/")) {
+            entryName = entryName.substring(1);
+        }
+        ZipArchiveEntry entry = new ZipArchiveEntry(entryName);
+        out.putArchiveEntry(entry);
 
-            for (int i = 0; i < flist.length; i++) {
-                compress(out, flist[i], base + "/" + flist[i].getName());
-            }
-        } else {
-            out.putArchiveEntry(new ZipArchiveEntry(base));
-
-            // 判断文件是否为文本文件
-            if (sourceFile.getName().endsWith(".mcmeta")) {
-                // 使用字符流处理文本文件
-                BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream(sourceFile), StandardCharsets.UTF_8));
-                BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8));
-
-                int tag;
-                while ((tag = reader.read()) != -1) {
-                    writer.write(tag);
-                }
-
-                writer.flush();
-                reader.close();
-            } else {
-                // 使用字节流处理非文本文件
-                FileInputStream fis = new FileInputStream(sourceFile);
+        if (!sourceFile.isDirectory()) {
+            try (FileInputStream fis = new FileInputStream(sourceFile)) {
                 IOUtils.copy(fis, out);
-                fis.close();
             }
+        }
 
-            out.closeArchiveEntry();
+        out.closeArchiveEntry();
+
+        if (sourceFile.isDirectory()) {
+            for (File nestedFile : sourceFile.listFiles()) {
+                compress(out, nestedFile, base + "/" + nestedFile.getName());
+            }
         }
     }
 }
