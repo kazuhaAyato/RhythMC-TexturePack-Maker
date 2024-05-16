@@ -29,25 +29,23 @@ public class ZipCompress {
     }
 
     public void compress(ZipArchiveOutputStream out, File sourceFile, String base) throws Exception {
-        String entryName = sourceFile.getPath().replace("\\", "/").substring(sourceFileName.length());
-        if (entryName.startsWith("/")) {
-            entryName = entryName.substring(1);
-        }
-        ZipArchiveEntry entry = new ZipArchiveEntry(entryName);
-        out.putArchiveEntry(entry);
-
-        if (!sourceFile.isDirectory()) {
-            try (FileInputStream fis = new FileInputStream(sourceFile)) {
-                IOUtils.copy(fis, out);
-            }
-        }
-
-        out.closeArchiveEntry();
-
         if (sourceFile.isDirectory()) {
             for (File nestedFile : sourceFile.listFiles()) {
                 compress(out, nestedFile, base + "/" + nestedFile.getName());
             }
+        } else {
+            String entryName = sourceFile.getPath().replace("\\", "/").substring(sourceFileName.length());
+            if (entryName.startsWith("/")) {
+                entryName = entryName.substring(1);
+            }
+            ZipArchiveEntry entry = new ZipArchiveEntry(entryName);
+            out.putArchiveEntry(entry);
+
+            try (FileInputStream fis = new FileInputStream(sourceFile)) {
+                IOUtils.copy(fis, out);
+            }
+
+            out.closeArchiveEntry();
         }
     }
 }
